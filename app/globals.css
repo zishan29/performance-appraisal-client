@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .label {
+    @apply mb-2 block cursor-text text-sm font-normal leading-[140%] text-gray-600;
+  }
+  .input {
+    @apply m-0 block h-11 w-full appearance-none rounded border border-gray-200 bg-transparent p-[11px] text-sm font-normal leading-[18px] tracking-[0px] text-black outline-0 ring-gray-800 focus:ring-2;
+  }
+  .form {
+    @apply flex flex-col gap-3;
+  }
+  .form-container {
+    @apply relative flex w-full flex-col rounded-md bg-white p-4 text-gray-900;
+  }
+  .title {
+    @apply mb-2 text-center text-2xl font-bold text-gray-900;
+  }
+  .button {
+    @apply col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white;
+  }
+  .main {
+    @apply flex min-h-screen flex-col items-center;
+  }
+  .container {
+    @apply flex md:w-3/4 xl:w-1/2;
+  }
+}
