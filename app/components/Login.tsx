@@ -124,7 +124,7 @@ export default function Login() {
         </form>
         <div className="mt-[1.6rem] text-center text-sm">
           Don’t have an account yet?{' '}
-          <a className="text-sm text-fuchsia-600" href="#">
+          <a className="text-sm text-fuchsia-600" href="/signup">
             Sign up
           </a>
         </div>

@@ -3,14 +3,26 @@
 import Nav from '@/app/components/Nav';
 import { useEffect, useState } from 'react';
 import { MouseEvent } from 'react';
+import Link from 'next/link';
+import TopNav from '@/app/components/AITopNav';
+import clsx from 'clsx';
 
-interface Category {
-  completedForms: number;
-  facultyId: string;
-  maxScore: number;
+interface InputData {
+  courseHours: number;
+  platformName: string;
+  professor: string;
+  AssessmentOutcome: string;
+  date: string;
+}
+
+interface Submission {
   _id: string;
   name: string;
-  totalForms: number;
+  facultyId: string;
+  categoryId: string;
+  score: string;
+  reviewStatus: string;
+  inputData: InputData;
 }
 
 export default function Page() {
@@ -21,7 +33,38 @@ export default function Page() {
   const [platformName, setPlatformName] = useState('');
   const [outcome, setOutcome] = useState('');
   const [date, setDate] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submission, setSubmission] = useState<Submission[]>([]);
+
+  async function checkSubmission() {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    const bearer = `Bearer ${token}`;
+    try {
+      const res = await fetch(
+        'https://performance-appraisal-api.adaptable.app/submission?name=AI-1',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: bearer,
+          },
+        },
+      );
+      if (res.ok) {
+        const resData = await res.json();
+        console.log(resData.submission);
+        setSubmission(resData.submission);
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    checkSubmission();
+  }, []);
 
   let outcomeMarks = 1;
   if (outcome.toLowerCase() === 'pass') {
@@ -64,34 +107,9 @@ export default function Page() {
 
   let marks = hoursMarks * platformMarks * outcomeMarks * dateMarks * 100;
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const bearer = `Bearer ${token}`;
-    (async () => {
-      try {
-        const res = await fetch(
-          'https://performance-appraisal-api.adaptable.app/categories',
-          {
-            method: 'GET',
-            headers: {
-              Authorization: bearer,
-            },
-          },
-        );
-        const resData = await res.json();
-        resData.categories.map((category: Category) => {
-          if (category.name === 'Administrative Bucket') {
-            setCategoryId(category._id);
-          }
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  }, []);
-
   async function submitForm(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
+    setLoading(true);
     if (!hours || !platformName || !professor || !outcome || !date) {
       alert('Please fill in all required fields.');
       return;
@@ -109,10 +127,11 @@ export default function Page() {
 
     let submissionData = {
       submissionName: 'AI-1',
-      categoryId: categoryId,
+      categoryId: localStorage.getItem('Academic Involvement'),
       score: marks,
       inputData: inputData,
     };
+    console.log(submissionData);
     try {
       const res = await fetch(
         'https://performance-appraisal-api.adaptable.app/submissions',
@@ -130,9 +149,12 @@ export default function Page() {
         setHours('');
         setPlatformName('');
         setOutcome('');
+        checkSubmission();
       }
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -140,7 +162,8 @@ export default function Page() {
     <>
       <main className="main">
         <Nav />
-        <div className="container">
+        <TopNav />
+        <div className="container ml-60 mt-40">
           <div className="form-container">
             <div className="title">Certification for courses alloted</div>
             <form className="flex flex-col gap-3">
@@ -153,7 +176,11 @@ export default function Page() {
                   placeholder="e.g. 20, 30"
                   className="input"
                   onChange={(e) => setHours(Number(e.target.value))}
-                  value={hours}
+                  value={
+                    submission.length > 0
+                      ? submission[0].inputData.courseHours
+                      : hours
+                  }
                 />
               </div>
               <div className="relative block">
@@ -168,7 +195,11 @@ export default function Page() {
                   required
                   className="input"
                   onChange={(e) => setPlatformName(e.target.value)}
-                  value={platformName}
+                  value={
+                    submission.length > 0
+                      ? submission[0].inputData.platformName
+                      : platformName
+                  }
                 />
               </div>
               <div className="relative block">
@@ -201,7 +232,11 @@ export default function Page() {
                   placeholder="e.g. Grade B, Pass, Audit or Fail"
                   className="input"
                   onChange={(e) => setOutcome(e.target.value.toLowerCase())}
-                  value={outcome}
+                  value={
+                    submission.length > 0
+                      ? submission[0].inputData.AssessmentOutcome
+                      : outcome
+                  }
                 />
               </div>
               <div className="relative block">
@@ -214,11 +249,62 @@ export default function Page() {
                   id=""
                   className="input"
                   onChange={(e) => setDate(e.target.value)}
+                  value={
+                    submission.length > 0 ? submission[0].inputData.date : ''
+                  }
                 />
               </div>
-              <button className="button" onClick={submitForm}>
-                submit
-              </button>
+              <div className="flex justify-between">
+                <div className="w-32"></div>
+                <button
+                  className={clsx('input-button', {
+                    'bg-gray-400': submission.length > 0,
+                    'cursor-not-allowed': submission.length > 0,
+                  })}
+                  onClick={submitForm}
+                  disabled={submission.length > 0}
+                >
+                  {loading ? (
+                    <>
+                      <div className="dot-spinner-button">
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                        <div className="dot-spinner__dot"></div>
+                      </div>
+                    </>
+                  ) : submission.length > 0 ? (
+                    'submitted'
+                  ) : (
+                    'submit'
+                  )}
+                </button>
+                <Link
+                  href="/academic-involvement/form-2"
+                  className="input-button"
+                >
+                  Next
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-arrow-right"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
             </form>
           </div>
         </div>
