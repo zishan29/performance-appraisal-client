@@ -9,6 +9,9 @@
   .input {
     @apply m-0 block h-11 w-full appearance-none rounded border border-gray-200 bg-transparent p-[11px] text-sm font-normal leading-[18px] tracking-[0px] text-black outline-0 ring-gray-800 focus:ring-2;
   }
+  .form-group {
+    @apply relative block;
+  }
   .form {
     @apply flex flex-col gap-3;
   }

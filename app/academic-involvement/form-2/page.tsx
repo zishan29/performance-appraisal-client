@@ -9,9 +9,9 @@ import clsx from 'clsx';
 
 interface InputData {
   courseName: string;
-  lecturesEngaged: number;
-  lecturesAsPerSyllabus: number;
-  completionOfSyllabus: number;
+  lecturesEngaged: string;
+  lecturesAsPerSyllabus: string;
+  completionOfSyllabus: string;
 }
 
 interface Submission {
@@ -21,23 +21,48 @@ interface Submission {
   categoryId: string;
   score: string;
   reviewStatus: string;
-  inputData: InputData;
+  inputData: InputData[];
 }
 
+type FormField = keyof InputData;
+
 export default function Page() {
-  const [courseName, setCourseName] = useState('');
-  const [lecturesEngaged, setLecturesEngaged] = useState<number | string>('');
-  const [lecturesAsPerSyllabus, setLectureAsPerSyllabus] = useState<
-    number | string
-  >('');
-  const [completionOfSyllabus, setCompletionOfSyllabus] = useState<
-    number | string
-  >('');
-  const target = Math.ceil(
-    (Number(lecturesEngaged) / Number(lecturesAsPerSyllabus)) * 100,
-  );
   const [loading, setLoading] = useState(false);
   const [submission, setSubmission] = useState<Submission[]>([]);
+  const [performedParameter, setPerformedParameter] = useState(true);
+  const [forms, setForms] = useState<InputData[]>([
+    {
+      courseName: '',
+      lecturesEngaged: '',
+      lecturesAsPerSyllabus: '',
+      completionOfSyllabus: '',
+    },
+  ]);
+
+  const addForm = () => {
+    setForms([
+      ...forms,
+      {
+        courseName: '',
+        lecturesEngaged: '',
+        lecturesAsPerSyllabus: '',
+        completionOfSyllabus: '',
+      },
+    ]);
+  };
+
+  const removeForm = (index: number) => {
+    const updatedForms = [...forms];
+    updatedForms.splice(index, 1);
+    setForms(updatedForms);
+  };
+
+  const handleChange = (index: number, field: FormField, value: string) => {
+    const updatedForms = [...forms];
+    updatedForms[index][field] = value;
+    setForms(updatedForms);
+    console.log(forms);
+  };
 
   async function checkSubmission() {
     setLoading(true);
@@ -55,8 +80,8 @@ export default function Page() {
       );
       if (res.ok) {
         const resData = await res.json();
-        console.log(resData.submission);
         setSubmission(resData.submission);
+        setForms(resData.submission[0].inputData);
       }
     } catch (err) {
       console.log(err);
@@ -69,47 +94,49 @@ export default function Page() {
     checkSubmission();
   }, []);
 
-  let score: number;
-  if (target >= 100) {
-    score = (300 * Number(completionOfSyllabus)) / 100;
-  }
-  if (90 <= target && target <= 99) {
-    score = (225 * Number(completionOfSyllabus)) / 100;
-  }
-  if (80 <= target && target <= 89) {
-    score = (150 * Number(completionOfSyllabus)) / 100;
-  }
-  if (70 <= target && target <= 79) {
-    score = (100 * Number(completionOfSyllabus)) / 100;
-  }
-  if (target < 70) {
-    score = (0 * Number(completionOfSyllabus)) / 100;
-  }
-
   async function submitForm(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     setLoading(true);
-    if (!lecturesEngaged || !lecturesAsPerSyllabus || !completionOfSyllabus) {
-      alert('Please fill in all required fields.');
-      return;
+
+    let score = 0;
+    if (performedParameter) {
+      let target = 0;
+      let completion = 0;
+      forms.map((form) => {
+        target +=
+          (Number(form.lecturesEngaged) / Number(form.lecturesAsPerSyllabus)) *
+          100;
+        completion += Number(form.completionOfSyllabus);
+      });
+
+      let avgTarget = target / forms.length;
+      let avgCompletion = completion / forms.length;
+      if (avgTarget >= 100) {
+        score = (300 * avgCompletion) / 100;
+      }
+      if (90 <= avgTarget && avgTarget <= 99) {
+        score = (225 * avgCompletion) / 100;
+      }
+      if (80 <= avgTarget && avgTarget <= 89) {
+        score = (150 * avgCompletion) / 100;
+      }
+      if (70 <= avgTarget && avgTarget <= 79) {
+        score = (100 * avgCompletion) / 100;
+      }
+      if (avgTarget < 70) {
+        score = (0 * avgCompletion) / 100;
+      }
     }
 
     const token = localStorage.getItem('token');
     const bearer = `Bearer ${token}`;
-    const inputData = {
-      courseName: courseName,
-      lecturesEngaged: lecturesEngaged,
-      lecturesAsPerSyllabus: lecturesAsPerSyllabus,
-      completionOfSyllabus: completionOfSyllabus,
-    };
 
     let submissionData = {
       submissionName: 'AI-2',
       categoryId: localStorage.getItem('Academic Involvement'),
       score: score,
-      inputData: inputData,
+      inputData: forms,
     };
-    console.log(submissionData);
     try {
       const res = await fetch(
         'https://performance-appraisal-api.adaptable.app/submissions',
@@ -123,10 +150,6 @@ export default function Page() {
         },
       );
       if (res.ok) {
-        setCourseName('');
-        setLecturesEngaged(0);
-        setLectureAsPerSyllabus(0);
-        setCompletionOfSyllabus(0);
         checkSubmission();
       }
     } catch (err) {
@@ -141,80 +164,206 @@ export default function Page() {
       <main className="main">
         <Nav />
         <TopNav />
-        <div className="container ml-60 mt-40">
+        <div
+          className={clsx('container ml-60 mt-40', {
+            'w-full': forms.length > 1,
+          })}
+        >
           <div className="form-container">
             <div className="title">
               Taught Course (during PA evaluation period)
             </div>
             <form action="" id="taughtCourses" className="flex flex-col gap-3">
               <div className="form-group">
-                <label htmlFor="courseName" className="label">
-                  Course/Lab name
+                <label htmlFor="noOfHours" className="label">
+                  Have you performed under this parameter?
                 </label>
-                <input
-                  type="text"
-                  id="courseName"
-                  onChange={(e) => setCourseName(e.target.value)}
-                  className="input"
-                  value={
-                    submission.length > 0
-                      ? submission[0].inputData.courseName
-                      : courseName
-                  }
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="noOfLecturesEngaged" className="label">
-                  No. of lectures engaged (including extra)
-                </label>
-                <input
-                  type="number"
-                  id="noOfLecturesEngaged"
-                  className="input"
-                  onChange={(e) => setLecturesEngaged(Number(e.target.value))}
-                  value={
-                    submission.length > 0
-                      ? submission[0].inputData.lecturesEngaged
-                      : lecturesEngaged
-                  }
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="noOfLecturesAsPerSyllabus" className="label">
-                  No. of lectures as per syllabus
-                </label>
-                <input
-                  type="number"
-                  id="noOfLecturesAsPerSyllabus"
+                <select
+                  name=""
+                  id=""
                   className="input"
                   onChange={(e) =>
-                    setLectureAsPerSyllabus(Number(e.target.value))
+                    setPerformedParameter(e.target.value === '1' ? true : false)
                   }
-                  value={
+                  value={performedParameter ? '1' : '0'}
+                  disabled={
+                    (performedParameter === false && submission.length > 0) ||
                     submission.length > 0
-                      ? submission[0].inputData.lecturesAsPerSyllabus
-                      : lecturesAsPerSyllabus
                   }
-                />
+                >
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
+                </select>
+                <div
+                  className={clsx('mt-2 text-sm text-gray-700', {
+                    hidden: performedParameter,
+                  })}
+                >
+                  The score for this parameter will be calculated as
+                  &apos;Zero&apos;, and you will not need to go through this
+                  worksheet for this parameter. <br />
+                  Note: Please click submit after selecting &apos;No&apos;
+                </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="completionOfSyllabus" className="label">
-                  Completion of syllabus in %
-                </label>
-                <input
-                  type="number"
-                  id="completionOfSyllabus"
-                  className="input"
-                  onChange={(e) =>
-                    setCompletionOfSyllabus(Number(e.target.value))
-                  }
-                  value={
-                    submission.length > 0
-                      ? submission[0].inputData.completionOfSyllabus
-                      : completionOfSyllabus
-                  }
-                />
-              </div>
+              {performedParameter ? (
+                <>
+                  <div
+                    className={clsx('grid grid-cols-1 gap-4', {
+                      'grid-cols-2': forms.length > 1,
+                    })}
+                  >
+                    {forms.map((form, index) => (
+                      <div
+                        className="rounded-md border border-gray-200 p-4"
+                        key={index}
+                      >
+                        <div
+                          className={clsx('mb-1 text-center font-semibold', {
+                            hidden: forms.length < 2,
+                          })}
+                        >
+                          Course/Lab {index + 1}
+                        </div>
+                        <div className="form-group">
+                          <label
+                            htmlFor={`courseName${index}`}
+                            className="label"
+                          >
+                            Course/Lab name
+                          </label>
+                          <input
+                            type="text"
+                            id={`courseName${index}`}
+                            onChange={(e) =>
+                              handleChange(index, 'courseName', e.target.value)
+                            }
+                            className="input"
+                            value={form.courseName}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label
+                            htmlFor={`lecturesEngaged${index}`}
+                            className="label"
+                          >
+                            No. of lectures engaged (including extra)
+                          </label>
+                          <input
+                            type="number"
+                            id={`lecturesEngaged${index}`}
+                            onChange={(e) =>
+                              handleChange(
+                                index,
+                                'lecturesEngaged',
+                                e.target.value,
+                              )
+                            }
+                            className="input"
+                            value={form.lecturesEngaged}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label
+                            htmlFor={`lecturesAsPerSyllabus${index}`}
+                            className="label"
+                          >
+                            No. of lectures as per syllabus
+                          </label>
+                          <input
+                            type="number"
+                            id={`lecturesAsPerSyllabus${index}`}
+                            onChange={(e) =>
+                              handleChange(
+                                index,
+                                'lecturesAsPerSyllabus',
+                                e.target.value,
+                              )
+                            }
+                            className="input"
+                            value={form.lecturesAsPerSyllabus}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label
+                            htmlFor={`completionOfSyllabus${index}`}
+                            className="label"
+                          >
+                            Completion of syllabus in %
+                          </label>
+                          <input
+                            type="number"
+                            id={`completionOfSyllabus${index}`}
+                            onChange={(e) =>
+                              handleChange(
+                                index,
+                                'completionOfSyllabus',
+                                e.target.value,
+                              )
+                            }
+                            className="input"
+                            value={form.completionOfSyllabus}
+                          />
+                        </div>
+                        <button
+                          className={clsx('input-button mt-3 w-max', {
+                            hidden: forms.length < 2,
+                            'bg-gray-400': submission.length > 0,
+                            'cursor-not-allowed': submission.length > 0,
+                          })}
+                          type="button"
+                          onClick={() => removeForm(index)}
+                          disabled={submission.length > 0}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-trash"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                ''
+              )}
+              <button
+                className={clsx('input-button flex w-max items-center gap-1', {
+                  'bg-gray-400': submission.length > 0,
+                  'cursor-not-allowed': submission.length > 0,
+                })}
+                type="button"
+                onClick={addForm}
+                disabled={submission.length > 0}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-plus"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+                Course/Lab
+              </button>
               <div className="flex justify-between">
                 <Link
                   href="/academic-involvement/form-1"

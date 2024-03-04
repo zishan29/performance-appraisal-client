@@ -160,7 +160,7 @@ export default function Home() {
                       ></div>
                       <div className="absolute inset-0 flex items-center justify-center text-black">
                         {progress
-                          ? `${progress?.['Student Development']}%`
+                          ? `${progress?.['Student Development'].toFixed(2)}%`
                           : '0%'}
                       </div>
                     </div>
@@ -179,7 +179,7 @@ export default function Home() {
                       ></div>
                       <div className="absolute inset-0 flex items-center justify-center text-black">
                         {progress
-                          ? `${progress?.['Student Development']}%`
+                          ? `${progress?.['Student Development'].toFixed(2)}%`
                           : '0%'}
                       </div>
                     </div>
@@ -198,7 +198,7 @@ export default function Home() {
                       ></div>
                       <div className="absolute inset-0 flex items-center justify-center text-black">
                         {progress
-                          ? `${progress?.['Student Development']}%`
+                          ? `${progress?.['Student Development'].toFixed(2)}%`
                           : '0%'}
                       </div>
                     </div>
@@ -217,7 +217,7 @@ export default function Home() {
                       ></div>
                       <div className="absolute inset-0 flex items-center justify-center text-black">
                         {progress
-                          ? `${progress?.['Student Development']}%`
+                          ? `${progress?.['Student Development'].toFixed(2)}%`
                           : '0%'}
                       </div>
                     </div>
