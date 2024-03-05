@@ -1,8 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Nav() {
+  const router = useRouter();
+  function logout() {
+    localStorage.clear();
+    router.push('/login');
+  }
   return (
     <>
       <nav className="fixed bottom-0 left-0 top-0 h-screen w-60 p-4">
@@ -67,6 +73,7 @@ export default function Nav() {
           <Link
             href="/login"
             className="flex items-center gap-2 rounded-md bg-gray-100 px-5 py-3 text-xl font-semibold"
+            onClick={logout}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
