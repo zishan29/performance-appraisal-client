@@ -85,10 +85,10 @@ export default function Page() {
       if (res.ok) {
         const resData = await res.json();
         console.log(!resData.submission[0].inputData);
-        if (resData.submission) {
+        if (!resData.submission[0].inputData) {
           setSubmission(resData.submission);
           setPerformedParameter(false);
-        } else if (resData.submission) {
+        } else if (resData.submission[0].inputData) {
           const submissionWithParsedInputData = resData.submission.map(
             (submission: Submission) => {
               return {
