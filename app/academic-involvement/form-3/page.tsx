@@ -2,7 +2,7 @@
 
 import { useState, useEffect, MouseEvent } from 'react';
 import Nav from '@/app/components/Nav';
-import TopNav from '@/app/components/AITopNav';
+import SideNav from '@/app/components/AISideNav';
 import Link from 'next/link';
 import clsx from 'clsx';
 
@@ -136,8 +136,8 @@ export default function Page() {
     let submissionData = {
       submissionName: 'AI-2',
       categoryId: localStorage.getItem('Academic Involvement'),
-      score: score,
-      inputData: inputData,
+      // score: score,
+      // inputData: inputData,
     };
     console.log(submissionData);
     try {
@@ -166,8 +166,8 @@ export default function Page() {
     <>
       <main className="main">
         <Nav />
-        <TopNav />
-        <div className="container ml-60 mt-40 w-full">
+        <div className="container">
+          <SideNav categoryName={'Academic Involvement'} />
           <div className="form-container">
             <div className="title">BSA - Guest Lecture</div>
             <form action="" id="taughtCourses" className="form">

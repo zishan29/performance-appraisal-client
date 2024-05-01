@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
+import userServices from '../services/user';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,33 +14,19 @@ export default function Login() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (localStorage.getItem('token')) {
-        (async () => {
-          try {
-            let res = await fetch(
-              'https://performance-appraisal-api.adaptable.app/verifyToken',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token: localStorage.getItem('token') }),
-              },
-            );
-            if (res.status === 401) {
-              let resData = await res.json();
-              console.log(resData.error);
+        userServices
+          .verifyToken({ token: localStorage.getItem('token') })
+          .then(() => {
+            router.push('/');
+          })
+          .catch((err) => {
+            if (err.response.status === 401) {
               router.push('/login');
             }
-            if (res.status === 200) {
-              router.push('/');
-            }
-          } catch (err) {
-            console.log(err);
-          }
-        })();
+          });
       }
     }
-  });
+  }, []);
 
   async function loginUser(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -48,30 +35,19 @@ export default function Login() {
       password: password,
     };
 
-    try {
-      let res = await fetch(
-        'https://performance-appraisal-api.adaptable.app/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        },
-      );
-      if (res.ok) {
-        let resData = await res.json();
-        localStorage.setItem('token', resData.token);
-        localStorage.setItem('id', resData.userData._id);
+    userServices
+      .login(data)
+      .then((responseData) => {
+        console.log(responseData);
+        localStorage.setItem('token', responseData.token);
+        localStorage.setItem('id', responseData.userData._id);
         router.push('/');
-      }
-      if (res.status === 403) {
-        const resData = await res.json();
-        setErrorMessage(resData.info.message);
-      }
-    } catch (err) {
-      console.log(err);
-    }
+      })
+      .catch((err) => {
+        if (err.response.status === 403) {
+          setErrorMessage(err.response.data.info.message);
+        }
+      });
   }
 
   return (

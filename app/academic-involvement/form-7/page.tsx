@@ -12,8 +12,8 @@ export default function Page() {
   const [Engg4, setEngg4] = useState('1');
   const [mapping, setMapping] = useState('1');
 
-  let weight = Math.max(MMS1 * MMS2, Engg * Engg2 * Engg3 * Engg4) * mapping;
-  let marks = Math.round((weight * 100 + Number.EPSILON) * 100) / 100;
+  // let weight = Math.max(MMS1 * MMS2, Engg * Engg2 * Engg3 * Engg4) * mapping;
+  // let marks = Math.round((weight * 100 + Number.EPSILON) * 100) / 100;
   return (
     <>
       <main className="main">

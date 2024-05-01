@@ -18,21 +18,21 @@ export default function Page() {
   let feedbackValue = 0;
   if (feedback >= 2.5) feedbackValue = attendees / totalStudents;
 
-  let weight =
-    Math.round(
-      (MOUPlacements *
-        MOU *
-        MOUInternship *
-        presence *
-        internship *
-        projects *
-        feedbackValue *
-        mapping +
-        Number.EPSILON) *
-        100,
-    ) / 100;
+  // let weight =
+  //   Math.round(
+  //     (MOUPlacements *
+  //       MOU *
+  //       MOUInternship *
+  //       presence *
+  //       internship *
+  //       projects *
+  //       feedbackValue *
+  //       mapping +
+  //       Number.EPSILON) *
+  //       100,
+  //   ) / 100;
 
-  let marks = Math.round((weight * 75 + Number.EPSILON) * 100) / 100;
+  // let marks = Math.round((weight * 75 + Number.EPSILON) * 100) / 100;
 
   return (
     <>

@@ -1,632 +1,510 @@
 'use client';
 
 import Nav from '@/app/components/Nav';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MouseEvent } from 'react';
 import Link from 'next/link';
-import TopNav from '@/app/components/AITopNav';
+import SideNav from '@/app/components/AISideNav';
 import clsx from 'clsx';
+import submissionServices from '../../services/submission';
+import Loader from '@/app/components/Loader';
 
 interface InputData {
-  courseHours: number;
+  courseHours: string;
   platformName: string;
+  courseName: string;
   professor: string;
-  AssessmentOutcome: string;
+  assessmentOutcome: string;
   date: string;
+  imagePreview: string;
+  file?: File | string;
+  fileName?: string;
 }
 
-interface SubmissionWithParsedInput {
-  _id: string;
-  name: string;
-  facultyId: string;
-  categoryId: string;
-  score: string;
-  reviewStatus: string;
-  inputData: InputData;
-}
-
-interface Submission {
-  _id: string;
-  name: string;
-  facultyId: string;
-  categoryId: string;
-  score: string;
-  reviewStatus: string;
-  inputData: string;
-}
+type FormField = keyof InputData;
 
 export default function Page() {
-  const [hours, setHours] = useState<number | string>('');
-  const [professor, setProfessor] = useState(
-    'Industry expert of National/International repute',
-  );
-  const [platformName, setPlatformName] = useState('');
-  const [outcome, setOutcome] = useState('');
-  const [date, setDate] = useState('');
   const [loading, setLoading] = useState(false);
-  const [submission, setSubmission] = useState<SubmissionWithParsedInput[]>([]);
-  const [file, setFile] = useState<File | null>(null);
-  const [multiple, setMultiple] = useState(false);
-  const [hours2, setHours2] = useState<number | string>('');
-  const [professor2, setProfessor2] = useState(
-    'Industry expert of National/International repute',
-  );
-  const [platformName2, setPlatformName2] = useState('');
-  const [outcome2, setOutcome2] = useState('');
-  const [date2, setDate2] = useState('');
-  const [file2, setFile2] = useState<File | null>(null);
-  const [maxScoreForm, setMaxScoreForm] = useState<string>('1');
-  const [performedParameter, setPerformedParameter] = useState(true);
+  const [forms, setForms] = useState<InputData[]>([
+    {
+      courseHours: '',
+      platformName: '',
+      courseName: '',
+      professor: 'Industry expert of National/International repute',
+      assessmentOutcome: '',
+      date: '',
+      imagePreview: '',
+    },
+  ]);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const inputRefs = useRef<HTMLInputElement[]>([]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files ? e.target.files[0] : null;
-    setFile(selectedFile);
+  const addForm = () => {
+    setForms([
+      ...forms,
+      {
+        courseHours: '',
+        platformName: '',
+        courseName: '',
+        professor: 'Industry expert of National/International repute',
+        assessmentOutcome: '',
+        date: '',
+        imagePreview: '',
+      },
+    ]);
   };
 
-  const handleFileChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files ? e.target.files[0] : null;
-    setFile2(selectedFile);
+  const removeForm = (index: number) => {
+    const updatedForms = [...forms];
+    updatedForms.splice(index, 1);
+    setForms(updatedForms);
   };
 
-  async function checkSubmission() {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    const bearer = `Bearer ${token}`;
-    try {
-      const res = await fetch(
-        'https://performance-appraisal-api.adaptable.app/submission?name=AI-1',
-        {
-          method: 'GET',
-          headers: {
-            Authorization: bearer,
-          },
-        },
-      );
-      if (res.ok) {
-        const resData = await res.json();
-        console.log(!resData.submission[0].inputData);
-        if (!resData.submission[0].inputData) {
-          setSubmission(resData.submission);
-          setPerformedParameter(false);
-        } else if (resData.submission[0].inputData) {
-          const submissionWithParsedInputData = resData.submission.map(
-            (submission: Submission) => {
-              return {
-                ...submission,
-                inputData: JSON.parse(submission.inputData),
-              };
-            },
-          );
-          setSubmission(submissionWithParsedInputData);
-        } else {
-          console.log('No submissions found in the response data');
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
+  const handleChange = (index: number, field: FormField, value: string) => {
+    const updatedForms = [...forms];
+    updatedForms[index][field] = value;
+    setForms(updatedForms);
+  };
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    const selectedFile = e.target.files ? e.target.files[0] : null;
+    const updatedForms = [...forms];
+    updatedForms[index].file = selectedFile!;
+    updatedForms[index].fileName = selectedFile!.name;
+    setForms(updatedForms);
+
+    if (selectedFile) {
+      const previewURL = URL.createObjectURL(selectedFile);
+      const updatedForms = [...forms];
+      updatedForms[index]['imagePreview'] = previewURL;
     }
+  };
+
+  function checkSubmission() {
+    setLoading(true);
+    const name = 'AI-1';
+    const userId = localStorage.getItem('id');
+    submissionServices
+      .getSubmission(name, userId)
+      .then((responseData) => {
+        if (responseData !== null) {
+          setSubmitted(true);
+          if (responseData.evidence) {
+            const copy = [
+              {
+                ...responseData.inputData,
+                imagePreview: responseData.evidence,
+              },
+            ];
+            setForms(copy);
+            console.log(copy);
+          } else {
+            setForms([responseData.inputData]);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   useEffect(() => {
     checkSubmission();
   }, []);
 
-  let outcomeMarks = 1;
-  if (outcome.toLowerCase() === 'pass') {
-    outcomeMarks = 0.4;
-  } else if (outcome.toLowerCase() === 'audit') {
-    outcomeMarks = 0.2;
-  } else if (outcome.toLowerCase() === 'fail') {
-    outcomeMarks = 0.2;
-  }
-
-  let hoursMarks = 1;
-  if (typeof hours === 'number') {
-    if (hours >= 20 && hours < 30) {
-      hoursMarks = 0.5;
-    } else if (hours < 20) {
-      hoursMarks = 0;
+  function calculateMarks(course: InputData) {
+    let outcomeMarks = 1;
+    if (course.assessmentOutcome.toLowerCase() === 'pass') {
+      outcomeMarks = 0.4;
+    } else if (
+      course.assessmentOutcome.toLowerCase() === 'audit' ||
+      course.assessmentOutcome.toLowerCase() === 'fail'
+    ) {
+      outcomeMarks = 0.2;
     }
-  }
 
-  let platformMarks = 1.5;
-
-  if (professor === 'Any other') {
-    platformMarks = 0.4;
-  } else if (professor === 'Professor from state college') {
-    platformMarks = 1;
-  }
-
-  const givenData = new Date(date);
-  const currentDate = new Date();
-  const yearsOfDiff = currentDate.getFullYear() - givenData.getFullYear();
-
-  let dateMarks = 0;
-  if (yearsOfDiff < 2) {
-    dateMarks = 1;
-  } else if (yearsOfDiff >= 2 && yearsOfDiff < 4) {
-    dateMarks = 0.75;
-  } else if (yearsOfDiff >= 4 && yearsOfDiff < 6) {
-    dateMarks = 0.4;
-  }
-
-  let marks = hoursMarks * platformMarks * outcomeMarks * dateMarks * 100;
-
-  let outcomeMarks2 = 1;
-  if (outcome2.toLowerCase() === 'pass') {
-    outcomeMarks2 = 0.4;
-  } else if (outcome2.toLowerCase() === 'audit') {
-    outcomeMarks2 = 0.2;
-  } else if (outcome2.toLowerCase() === 'fail') {
-    outcomeMarks2 = 0.2;
-  }
-
-  let hoursMarks2 = 1;
-  if (typeof hours2 === 'number') {
-    if (hours2 >= 20 && hours2 < 30) {
-      hoursMarks2 = 0.5;
-    } else if (hours2 < 20) {
-      hoursMarks2 = 0;
+    let hoursMarks = 1;
+    const hours = Number(course.courseHours);
+    if (!isNaN(hours)) {
+      if (hours >= 20 && hours < 30) {
+        hoursMarks = 0.5;
+      } else if (hours < 20) {
+        hoursMarks = 0;
+      }
     }
+
+    let platformMarks = 1.5;
+    if (course.professor === 'Any other') {
+      platformMarks = 0.4;
+    } else if (course.professor === 'Professor from state college') {
+      platformMarks = 1;
+    }
+
+    const givenData = new Date(course.date);
+    const currentDate = new Date();
+    const yearsOfDiff = currentDate.getFullYear() - givenData.getFullYear();
+
+    let dateMarks = 0;
+    if (yearsOfDiff < 2) {
+      dateMarks = 1;
+    } else if (yearsOfDiff >= 2 && yearsOfDiff < 4) {
+      dateMarks = 0.75;
+    } else if (yearsOfDiff >= 4 && yearsOfDiff < 6) {
+      dateMarks = 0.4;
+    }
+
+    const marks = hoursMarks * platformMarks * outcomeMarks * dateMarks * 100;
+    return marks;
   }
 
-  let platformMarks2 = 1.5;
-
-  if (professor2 === 'Any other') {
-    platformMarks2 = 0.4;
-  } else if (professor2 === 'Professor from state college') {
-    platformMarks2 = 1;
-  }
-
-  const givenData2 = new Date(date2);
-  const currentDate2 = new Date();
-  const yearsOfDiff2 = currentDate2.getFullYear() - givenData2.getFullYear();
-
-  let dateMarks2 = 0;
-  if (yearsOfDiff2 < 2) {
-    dateMarks2 = 1;
-  } else if (yearsOfDiff2 >= 2 && yearsOfDiff2 < 4) {
-    dateMarks2 = 0.75;
-  } else if (yearsOfDiff2 >= 4 && yearsOfDiff2 < 6) {
-    dateMarks2 = 0.4;
-  }
-
-  let marks2 = hoursMarks2 * platformMarks2 * outcomeMarks2 * dateMarks2 * 100;
-
-  async function submitForm(event: MouseEvent<HTMLButtonElement>) {
+  function submitForm(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem('token');
-    const bearer = `Bearer ${token}`;
-    const formData = new FormData();
+
+    const marksForEachCourse = forms.map((course) => calculateMarks(course));
+    const maxMarks = Math.max(...marksForEachCourse);
+    const maxMarksIdx = marksForEachCourse.indexOf(maxMarks);
+
+    const userId = localStorage.getItem('id');
     const categoryId = localStorage.getItem('Academic Involvement');
-    let inputData = {};
+    const inputData = forms[maxMarksIdx];
 
-    if (performedParameter) {
-      if (!platformName || !professor || !outcome || !date || !file) {
-        alert('Please fill in all required fields.');
-        setLoading(false);
-        return;
-      }
-
-      if (multiple && !hours) {
-        alert('Please fill in all required fields.');
-        setLoading(false);
-        return;
-      }
-
-      if (
-        multiple &&
-        (!hours2 ||
-          !platformName2 ||
-          !professor2 ||
-          !outcome2 ||
-          !date2 ||
-          !file2)
-      ) {
-        alert('Please fill in all required fields.');
-        setLoading(false);
-        return;
-      }
-
-      setMaxScoreForm(marks > marks2 ? '1' : '2');
-
-      if (maxScoreForm === '2') {
-        inputData = {
-          courseHours: hours2,
-          platformName: platformName2,
-          professor: professor2,
-          AssessmentOutcome: outcome2,
-          date: date2,
-        };
-        formData.append('submissionName', 'AI-1');
-        formData.append('categoryId', categoryId as string);
-        formData.append('score', String(marks2));
-        formData.append('inputData', JSON.stringify(inputData));
-        formData.append('file', file2 as File);
-      } else {
-        inputData = {
-          courseHours: hours,
-          platformName: platformName,
-          professor: professor,
-          AssessmentOutcome: outcome,
-          date: date,
-        };
-        formData.append('submissionName', 'AI-1');
-        formData.append('categoryId', categoryId as string);
-        formData.append('score', String(marks));
-        formData.append('inputData', JSON.stringify(inputData));
-        formData.append('file', file as File);
-      }
-    } else {
-      formData.append('submissionName', 'AI-1');
-      formData.append('categoryId', categoryId as string);
-      formData.append('score', String(0));
+    const formData = new FormData();
+    if (forms[maxMarksIdx].file) {
+      formData.append('file', forms[maxMarksIdx].file!);
     }
-    try {
-      const res = await fetch(
-        'https://performance-appraisal-api.adaptable.app/submissions',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: bearer,
-          },
-          body: formData,
-        },
-      );
-      if (res.ok) {
-        setDate('');
-        setHours('');
-        setPlatformName('');
-        setOutcome('');
-        checkSubmission();
-      }
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
+    formData.append('submissionName', 'AI-1');
+    formData.append('facultyId', `${userId}`);
+    formData.append('categoryId', `${categoryId}`);
+    formData.append('score', `${maxMarks}`);
+    formData.append('inputData[courseHours]', `${inputData.courseHours}`);
+    formData.append('inputData[platformName]', `${inputData.platformName}`);
+    formData.append('inputData[courseName]', `${inputData.courseName}`);
+    formData.append('inputData[professor]', `${inputData.professor}`);
+    formData.append(
+      'inputData[assessmentOutcome]',
+      `${inputData.assessmentOutcome}`,
+    );
+    formData.append('inputData[date]', `${inputData.date}`);
+
+    if (submitted) {
+      submissionServices
+        .editSubmission(formData)
+        .then((responseData) => {
+          console.log(responseData);
+          setIsEditing(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      submissionServices
+        .submit(formData)
+        .then((responseData) => {
+          console.log(responseData);
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }
+
+  const handleEdit = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsEditing(true);
+  };
 
   return (
     <>
       <main className="main">
         <Nav />
-        <TopNav />
-        <div
-          className={clsx('container ml-60 mt-28', {
-            'w-full': multiple,
-          })}
-        >
-          <div className="form-container">
-            <div className="title">Certification for courses alloted</div>
-
-            <form className="flex flex-col gap-3">
-              <div className="form-group">
-                <label htmlFor="noOfHours" className="label">
-                  Have you performed under this parameter?
-                </label>
-                <select
-                  name=""
-                  id=""
-                  className="input"
-                  onChange={(e) =>
-                    setPerformedParameter(e.target.value === '1' ? true : false)
-                  }
-                  value={performedParameter ? '1' : '0'}
-                  disabled={
-                    performedParameter === false && submission.length > 0
-                  }
-                >
-                  <option value="1">Yes</option>
-                  <option value="0">No</option>
-                </select>
-                <div
-                  className={clsx('mt-2 text-sm text-gray-700', {
-                    hidden: performedParameter,
-                  })}
-                >
-                  The score for this parameter will be calculated as
-                  &apos;Zero&apos;, and you will not need to go through this
-                  form for this parameter. <br />
-                  Note: Please click submit after selecting &apos;No&apos;
-                </div>
-              </div>
-              {performedParameter ? (
-                <>
-                  <div className="form-group">
-                    <label htmlFor="dateOfCertification" className="label">
-                      Do you have multiple certifications?
-                    </label>
-                    <select
-                      name=""
-                      id=""
-                      className="input"
-                      onChange={(e) =>
-                        setMultiple(e.target.value === '1' ? true : false)
-                      }
-                      value={multiple ? '1' : '0'}
-                    >
-                      <option value="1">Yes</option>
-                      <option value="0">No</option>
-                    </select>
-                    <div
-                      className={clsx('mt-2 text-sm text-gray-700', {
-                        hidden: multiple === false,
-                      })}
-                    >
-                      For multiple certifications: provide data of two best
-                      certificates(having maximum marks). Best of the two marks
-                      shall be considered.
-                    </div>
-                  </div>
-                  <div className="flex w-full gap-4">
-                    <div className="flex grow flex-col gap-3 rounded-md border border-gray-200 p-4">
-                      <div
-                        className={clsx('mb-2 text-lg font-semibold', {
-                          hidden: multiple === false,
-                        })}
-                      >
-                        Certification 1
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="noOfHours" className="label">
-                          Course hours
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 20, 30"
-                          className="input"
-                          onChange={(e) => setHours(Number(e.target.value))}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.courseHours
-                              : hours
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="platform" className="label">
-                          Platform
-                        </label>
-                        <input
-                          type="text"
-                          name=""
-                          id=""
-                          placeholder="e.g. Udemy, Coursera, IIT"
-                          required
-                          className="input"
-                          onChange={(e) => setPlatformName(e.target.value)}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.platformName
-                              : platformName
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="platform" className="label">
-                          Professor
-                        </label>
-                        <select
-                          name="platform"
-                          id="platform"
-                          className="input"
-                          onChange={(e) => setProfessor(e.target.value)}
-                        >
-                          <option value="Industry expert of National/International repute">
-                            Industry expert of National/International repute
-                          </option>
-                          <option value="Professor from state college">
-                            Professor from state college
-                          </option>
-                          <option value="Any other">Any other</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="assessmentOutcome" className="label">
-                          Assessment outcome
-                        </label>
-                        <input
-                          type="text"
-                          name=""
-                          id=""
-                          placeholder="e.g. Grade B, Pass, Audit or Fail"
-                          className="input"
-                          onChange={(e) =>
-                            setOutcome(e.target.value.toLowerCase())
-                          }
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.AssessmentOutcome
-                              : outcome
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="dateOfCertification" className="label">
-                          Date of certification
-                        </label>
-                        <input
-                          type="date"
-                          name=""
-                          id=""
-                          className="input"
-                          onChange={(e) => setDate(e.target.value)}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.date
-                              : date
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="file" className="label">
-                          Evidence of certification
-                        </label>
-                        <input
-                          type="file"
-                          name=""
-                          id="file"
-                          accept="image/*"
-                          className="input"
-                          onChange={handleFileChange}
-                        />
-                      </div>
-                    </div>
-                    <div
-                      className={clsx(
-                        'flex grow flex-col gap-3 rounded-md border border-gray-200 p-4',
-                        {
-                          hidden: multiple === false,
-                        },
-                      )}
-                    >
-                      <div className="mb-2 text-lg font-semibold">
-                        Certification 2
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="noOfHours" className="label">
-                          Course hours
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 20, 30"
-                          className="input"
-                          onChange={(e) => setHours2(Number(e.target.value))}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.courseHours
-                              : hours2
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="platform" className="label">
-                          Platform
-                        </label>
-                        <input
-                          type="text"
-                          name=""
-                          id=""
-                          placeholder="e.g. Udemy, Coursera, IIT"
-                          required
-                          className="input"
-                          onChange={(e) => setPlatformName2(e.target.value)}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.platformName
-                              : platformName2
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="platform" className="label">
-                          Professor
-                        </label>
-                        <select
-                          name="platform"
-                          id="platform"
-                          className="input"
-                          onChange={(e) => setProfessor2(e.target.value)}
-                        >
-                          <option value="Industry expert of National/International repute">
-                            Industry expert of National/International repute
-                          </option>
-                          <option value="Professor from state college">
-                            Professor from state college
-                          </option>
-                          <option value="Any other">Any other</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="assessmentOutcome" className="label">
-                          Assessment outcome
-                        </label>
-                        <input
-                          type="text"
-                          name=""
-                          id=""
-                          placeholder="e.g. Grade B, Pass, Audit or Fail"
-                          className="input"
-                          onChange={(e) =>
-                            setOutcome2(e.target.value.toLowerCase())
-                          }
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.AssessmentOutcome
-                              : outcome2
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="dateOfCertification" className="label">
-                          Date of certification
-                        </label>
-                        <input
-                          type="date"
-                          name=""
-                          id=""
-                          className="input"
-                          onChange={(e) => setDate2(e.target.value)}
-                          value={
-                            submission.length > 0
-                              ? submission[0].inputData.date
-                              : date2
-                          }
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="file2" className="label">
-                          Evidence of certification
-                        </label>
-                        <input
-                          type="file"
-                          id="file2"
-                          name=""
-                          accept="image/*"
-                          className="input"
-                          onChange={handleFileChange2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
+        <div className="container">
+          <SideNav categoryName={'Academic Involvement'} />
+          <div className="form-container border border-gray-200">
+            <div className="title flex items-center justify-center gap-2">
+              {submitted ? (
+                <span className="my-auto">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="stroke-green-600"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <path d="m9 11 3 3L22 4" />
+                  </svg>
+                </span>
               ) : (
                 ''
               )}
-
+              Certification for Courses Alloted{' '}
+            </div>
+            <form className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 gap-4">
+                {forms.map((form, index) => (
+                  <div
+                    key={index}
+                    className="flex grow flex-col gap-3 rounded-md border border-gray-200 p-4"
+                  >
+                    <div
+                      className={clsx('mb-2 text-lg font-semibold', {
+                        hidden: forms.length < 2,
+                      })}
+                    >
+                      Certification {index + 1}
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="noOfHours" className="label">
+                        Course hours
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 20, 30"
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(index, 'courseHours', e.target.value)
+                        }
+                        value={form.courseHours}
+                        disabled={submitted && !isEditing}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="platform" className="label">
+                        Platform
+                      </label>
+                      <input
+                        type="text"
+                        name=""
+                        id=""
+                        placeholder="e.g. Udemy, Coursera, IIT"
+                        required
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(index, 'platformName', e.target.value)
+                        }
+                        value={form.platformName}
+                        disabled={submitted && !isEditing}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="courseName" className="label">
+                        Course name
+                      </label>
+                      <input
+                        type="text"
+                        name=""
+                        id="courseName"
+                        placeholder="course name"
+                        required
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(index, 'courseName', e.target.value)
+                        }
+                        value={form.courseName}
+                        disabled={submitted && !isEditing}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="platform" className="label">
+                        Professor
+                      </label>
+                      <select
+                        name="platform"
+                        id="platform"
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(index, 'professor', e.target.value)
+                        }
+                        value={form.professor}
+                        disabled={submitted && !isEditing}
+                      >
+                        <option value="Industry expert of National/International repute">
+                          Industry expert of National/International repute
+                        </option>
+                        <option value="Professor from state college">
+                          Professor from state college
+                        </option>
+                        <option value="Any other">Any other</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="assessmentOutcome" className="label">
+                        Assessment outcome
+                      </label>
+                      <input
+                        type="text"
+                        name=""
+                        id=""
+                        placeholder="e.g. Grade B, Pass, Audit or Fail"
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(
+                            index,
+                            'assessmentOutcome',
+                            e.target.value.toLowerCase(),
+                          )
+                        }
+                        value={form.assessmentOutcome}
+                        disabled={submitted && !isEditing}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="dateOfCertification" className="label">
+                        Date of certification
+                      </label>
+                      <input
+                        type="date"
+                        name=""
+                        id=""
+                        className="input"
+                        onChange={(e) =>
+                          handleChange(index, 'date', e.target.value)
+                        }
+                        value={form.date}
+                        disabled={submitted && !isEditing}
+                      />
+                    </div>
+                    <div
+                      className={clsx('flex items-center text-sm', {
+                        hidden: submitted && !isEditing,
+                      })}
+                    >
+                      <button
+                        onClick={() => inputRefs.current[index]?.click()}
+                        type="button"
+                        className="flex h-max w-max items-center gap-2 rounded border border-gray-300 px-2 py-1 outline-none focus:outline-black"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="stroke-black"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" x2="12" y1="3" y2="15" />
+                        </svg>{' '}
+                        Upload evidence
+                      </button>
+                      <input
+                        id={`file-${index}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, index)}
+                        ref={(el) => {
+                          if (el) inputRefs.current[index] = el;
+                        }}
+                        style={{ display: 'none' }}
+                      />{' '}
+                      {form.fileName}
+                    </div>
+                    {form.imagePreview !== '' && (
+                      <>
+                        <div>
+                          <div className="mb-1">Evidence preview: </div>
+                          <img
+                            src={form.imagePreview}
+                            alt="Image Preview"
+                            className="h-auto w-auto rounded-md border-2 border-black"
+                          />
+                        </div>
+                      </>
+                    )}
+                    <button
+                      className={clsx('input-button mt-3 w-max', {
+                        hidden: forms.length < 2 || (submitted && !isEditing),
+                      })}
+                      type="button"
+                      onClick={() => removeForm(index)}
+                      disabled={submitted && !isEditing}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-trash"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                className={clsx('input-button flex w-max items-center gap-1', {
+                  hidden: submitted && !isEditing,
+                })}
+                type="button"
+                onClick={addForm}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-plus"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+                Certifications
+              </button>
               <div className="flex justify-between">
                 <div className="w-32"></div>
-                <button
-                  className={clsx('input-button', {
-                    'bg-gray-400': submission.length > 0,
-                    'cursor-not-allowed': submission.length > 0,
-                  })}
-                  onClick={submitForm}
-                  disabled={submission.length > 0}
-                >
-                  {loading ? (
-                    <>
-                      <div className="dot-spinner-button">
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                        <div className="dot-spinner__dot"></div>
-                      </div>
-                    </>
-                  ) : submission.length > 0 ? (
-                    'submitted'
+                {submitted ? (
+                  isEditing ? (
+                    <button className="input-button" onClick={submitForm}>
+                      {loading ? <Loader /> : 'submit'}
+                    </button>
                   ) : (
-                    'submit'
-                  )}
-                </button>
+                    <button className="input-button" onClick={handleEdit}>
+                      {loading ? <Loader /> : 'Edit'}
+                    </button>
+                  )
+                ) : (
+                  <button className="input-button" onClick={submitForm}>
+                    {loading ? <Loader /> : 'submit'}
+                  </button>
+                )}
                 <Link
                   href="/academic-involvement/form-2"
                   className="input-button"

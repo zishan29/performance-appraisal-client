@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Nav from './components/Nav';
-import Guidelines from './components/Guidelines';
+import userServices from './services/user';
 
 interface Progress {
   'Student Development': number;
@@ -25,77 +25,42 @@ export default function Home() {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        let res = await fetch(
-          'https://performance-appraisal-api.adaptable.app/verifyToken',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token: localStorage.getItem('token') }),
-          },
-        );
-        if (res.status === 200) {
-          const resData = await res.json();
-          setUserType(resData.user.user.userType);
-          const token = localStorage.getItem('token');
-          const bearer = `Bearer ${token}`;
-          try {
-            const res = await fetch(
-              'https://performance-appraisal-api.adaptable.app/userProgress',
-              {
-                method: 'GET',
-                headers: {
-                  Authorization: bearer,
-                },
-              },
-            );
-            const resData = await res.json();
-            setProgress(resData.progress);
-            console.log(resData.progress);
-          } catch (err) {
-            console.log(err);
-          }
-        }
-        if (res.status === 401) {
-          let resData = await res.json();
-          console.log(resData.error);
+    setLoading(true);
+    userServices
+      .verifyToken({ token: localStorage.getItem('token') })
+      .then((responseData) => {
+        setUserType(responseData.user.user.userType);
+        router.push('/');
+      })
+      .then(() => {
+        userServices.getUserProgress().then((responseData) => {
+          setProgress(responseData.progress);
+        });
+      })
+      .catch((err) => {
+        if (err.response.status === 401) {
           router.push('/login');
         }
-      } catch (err) {
         console.log(err);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    })();
+      });
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const bearer = `Bearer ${token}`;
-    (async () => {
-      try {
-        const res = await fetch(
-          'https://performance-appraisal-api.adaptable.app/categories',
-          {
-            method: 'GET',
-            headers: {
-              Authorization: bearer,
-            },
-          },
-        );
-        const resData = await res.json();
-        resData.categories.map((category: Category) => {
+    userServices
+      .getCategories()
+      .then((responseData) => {
+        responseData.categories.map((category: Category) => {
           localStorage.setItem(`${category.name}`, category._id);
         });
-      } catch (err) {
+      })
+      .catch((err) => {
         console.log(err);
-      }
-    })();
+      });
   }, []);
 
   const getAILink = () => {
@@ -107,7 +72,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex items-center">
+    <main className="flex flex-col items-center">
       {userType === 'user' ? (
         <>
           <Nav />
@@ -128,7 +93,7 @@ export default function Home() {
             </>
           ) : (
             <>
-              <div className="ml-60 flex grow flex-col px-4">
+              <div className="flex w-3/5 flex-col px-4">
                 <div className="my-4 flex flex-col gap-4">
                   <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
                     Academic Involvement
@@ -146,7 +111,10 @@ export default function Home() {
                       </div>
                     </div>
                     <Link className="button" href={getAILink()}>
-                      Fill this category
+                      Fill
+                    </Link>
+                    <Link className="button" href="#">
+                      Submit
                     </Link>
                   </div>
                   <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
@@ -165,7 +133,10 @@ export default function Home() {
                       </div>
                     </div>
                     <Link className="button" href="#">
-                      Fill this category
+                      Fill
+                    </Link>
+                    <Link className="button" href="#">
+                      Submit
                     </Link>
                   </div>
                   <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
@@ -184,7 +155,10 @@ export default function Home() {
                       </div>
                     </div>
                     <Link className="button" href="#">
-                      Fill this category
+                      Fill
+                    </Link>
+                    <Link className="button" href="#">
+                      Submit
                     </Link>
                   </div>
                   <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
@@ -203,7 +177,10 @@ export default function Home() {
                       </div>
                     </div>
                     <Link className="button" href="#">
-                      Fill this category
+                      Fill
+                    </Link>
+                    <Link className="button" href="#">
+                      Submit
                     </Link>
                   </div>
                   <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
@@ -222,11 +199,13 @@ export default function Home() {
                       </div>
                     </div>
                     <Link className="button" href="#">
-                      Fill this category
+                      Fill
+                    </Link>
+                    <Link className="button" href="#">
+                      Submit
                     </Link>
                   </div>
                 </div>
-                <Guidelines />
               </div>
             </>
           )}

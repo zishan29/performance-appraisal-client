@@ -11,11 +11,11 @@ export default function Nav() {
   }
   return (
     <>
-      <nav className="fixed bottom-0 left-0 top-0 h-screen w-60 p-4">
-        <div className="flex h-full w-full flex-col gap-1">
+      <nav className="flex w-full bg-white p-4">
+        <div className="flex h-full w-full gap-1">
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-md bg-gray-100 px-5 py-3 text-xl font-semibold"
+            className="flex items-center gap-2 rounded-md px-5 py-3 text-xl font-semibold"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +36,7 @@ export default function Nav() {
           </Link>
           <Link
             href="/scores"
-            className="flex items-center gap-2 rounded-md bg-gray-100 px-5 py-3 text-xl font-semibold"
+            className="flex items-center gap-2 rounded-md px-5 py-3 text-xl font-semibold"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -49,8 +49,30 @@ export default function Nav() {
             Scores
           </Link>
           <Link
+            href="/guidelines"
+            className="flex items-center gap-2 rounded-md px-5 py-3 text-xl font-semibold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-book-text"
+            >
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              <path d="M8 7h6" />
+              <path d="M8 11h8" />
+            </svg>
+            Guidelines
+          </Link>
+          <Link
             href="/profile"
-            className="flex items-center gap-2 rounded-md bg-gray-100 px-5 py-3 text-xl font-semibold"
+            className="flex items-center gap-2 rounded-md px-5 py-3 text-xl font-semibold"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -69,10 +91,10 @@ export default function Nav() {
             </svg>
             Profile
           </Link>
-          <div className="grow rounded-md bg-gray-100 px-5 py-3"></div>
+          <div className="grow rounded-md px-5 py-3"></div>
           <Link
             href="/login"
-            className="flex items-center gap-2 rounded-md bg-gray-100 px-5 py-3 text-xl font-semibold"
+            className="flex items-center gap-2 rounded-md px-5 py-3 text-xl font-semibold"
             onClick={logout}
           >
             <svg

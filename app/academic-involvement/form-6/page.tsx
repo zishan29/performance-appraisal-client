@@ -9,14 +9,14 @@ export default function Page() {
   const [typeOfProject, setTypeOfProject] = useState('1');
   const [mapping, setMapping] = useState('1.5');
 
-  let weight =
-    Math.round(
-      (typeOfGuide * typeOfOrganization * typeOfProject * mapping +
-        Number.EPSILON) *
-        100,
-    ) / 100;
+  // let weight =
+  //   Math.round(
+  //     (typeOfGuide * typeOfOrganization * typeOfProject * mapping +
+  //       Number.EPSILON) *
+  //       100,
+  //   ) / 100;
 
-  let marks = Math.ceil(Math.round((weight * 75 + Number.EPSILON) * 100) / 100);
+  // let marks = Math.ceil(Math.round((weight * 75 + Number.EPSILON) * 100) / 100);
 
   return (
     <>

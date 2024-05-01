@@ -55,7 +55,7 @@ export default function Page() {
     <>
       <main className="flex min-h-screen flex-col items-center">
         <Nav />
-        <div className="ml-60 flex justify-center">
+        <div className="flex justify-center">
           <div className="my-4 flex flex-col gap-2 lg:w-3/4 xl:w-1/2">
             <div className="mb-4 self-center text-xl font-semibold">
               Your Score Cards
