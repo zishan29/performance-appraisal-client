@@ -32,4 +32,32 @@ const getCategories = () => {
   return request.then((response) => response.data);
 };
 
-export default { signup, login, verifyToken, getUserProgress, getCategories };
+const getUserScores = () => {
+  const token = localStorage.getItem('token');
+  const request = axios.get(`${baseurl}/userScores`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return request.then((response) => response.data);
+};
+
+const getUserDetails = () => {
+  const token = localStorage.getItem('token');
+  const request = axios.get(`${baseurl}/userDetails`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return request.then((response) => response.data);
+};
+
+export default {
+  signup,
+  login,
+  verifyToken,
+  getUserProgress,
+  getCategories,
+  getUserScores,
+  getUserDetails,
+};

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import SideNav from '@/app/components/AISideNav';
 import clsx from 'clsx';
 import submissionServices from '../../services/submission';
-import Loader from '@/app/components/Loader';
+import Loader from '@/app/components/ButtonLoader';
 
 interface InputData {
   courseHours: string;
@@ -437,7 +437,7 @@ export default function Page() {
                       </>
                     )}
                     <button
-                      className={clsx('input-button mt-3 w-max', {
+                      className={clsx('AIinput-button mt-3 w-max', {
                         hidden: forms.length < 2 || (submitted && !isEditing),
                       })}
                       type="button"
@@ -465,9 +465,12 @@ export default function Page() {
                 ))}
               </div>
               <button
-                className={clsx('input-button flex w-max items-center gap-1', {
-                  hidden: submitted && !isEditing,
-                })}
+                className={clsx(
+                  'AIinput-button flex w-max items-center gap-1',
+                  {
+                    hidden: submitted && !isEditing,
+                  },
+                )}
                 type="button"
                 onClick={addForm}
               >
@@ -492,22 +495,22 @@ export default function Page() {
                 <div className="w-32"></div>
                 {submitted ? (
                   isEditing ? (
-                    <button className="input-button" onClick={submitForm}>
+                    <button className="AIinput-button" onClick={submitForm}>
                       {loading ? <Loader /> : 'submit'}
                     </button>
                   ) : (
-                    <button className="input-button" onClick={handleEdit}>
+                    <button className="AIinput-button" onClick={handleEdit}>
                       {loading ? <Loader /> : 'Edit'}
                     </button>
                   )
                 ) : (
-                  <button className="input-button" onClick={submitForm}>
+                  <button className="AIinput-button" onClick={submitForm}>
                     {loading ? <Loader /> : 'submit'}
                   </button>
                 )}
                 <Link
                   href="/academic-involvement/form-2"
-                  className="input-button"
+                  className="AIinput-button"
                 >
                   Next
                   <svg

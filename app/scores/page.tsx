@@ -1,12 +1,18 @@
 'use client';
 
-import Link from 'next/link';
 import Nav from '../components/Nav';
 import { useEffect, useState } from 'react';
+import HorizontalBarChart from '../components/Chart';
+import userServices from '@/app/services/user';
+import Loader from '../components/Loader';
 
 interface Score {
   'Academic Involvement': number;
   'Student Development': number;
+  'Administrative Bucket': number;
+  'Research Bucket': number;
+  'Consultancy and Corporate': number;
+  'Product Dev. Bucket': number;
 }
 
 interface Progress {
@@ -15,32 +21,49 @@ interface Progress {
 }
 
 export default function Page() {
-  const [scores, setScores] = useState<Score | null>(null);
+  const [data, setData] = useState<number[]>([]);
   const [progress, setProgress] = useState<Progress | null>(null);
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const bearer = `Bearer ${token}`;
-    (async () => {
-      const [res1, res2] = await Promise.all([
-        fetch('https://performance-appraisal-api.adaptable.app/userScores', {
-          method: 'GET',
-          headers: {
-            Authorization: bearer,
-          },
-        }),
-        fetch('https://performance-appraisal-api.adaptable.app/userProgress', {
-          method: 'GET',
-          headers: {
-            Authorization: bearer,
-          },
-        }),
-      ]);
-      const resData1 = await res1.json();
-      setScores(resData1.scores);
+  const labels = [
+    'Academic Involvement',
+    'Student Development',
+    'Administrative Bucket',
+    'Research Bucket',
+    'Consultancy and Corporate',
+    'Product Dev. Bucket',
+  ];
 
-      const resData2 = await res2.json();
-      setProgress(resData2.progress);
-    })();
+  useEffect(() => {
+    userServices
+      .getUserScores()
+      .then((responseData) => {
+        const copyScores: Score = {
+          'Academic Involvement': Number(
+            responseData.scores['Academic Involvement'],
+          ),
+          'Student Development': 1600,
+          'Administrative Bucket': 500,
+          'Research Bucket': 416,
+          'Consultancy and Corporate': 600,
+          'Product Dev. Bucket': 300,
+        };
+        const temp: number[] = (
+          Object.keys(copyScores) as Array<keyof Score>
+        ).map((category) => copyScores[category]);
+        console.log(temp);
+        setData(temp);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    userServices
+      .getUserProgress()
+      .then((responseData) => {
+        // console.log(responseData);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
   const getAILink = () => {
@@ -55,175 +78,13 @@ export default function Page() {
     <>
       <main className="flex min-h-screen flex-col items-center">
         <Nav />
-        <div className="flex justify-center">
-          <div className="my-4 flex flex-col gap-2 lg:w-3/4 xl:w-1/2">
-            <div className="mb-4 self-center text-xl font-semibold">
-              Your Score Cards
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Academic Involvement
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">
-                {scores ? scores['Academic Involvement'] : 0}
-              </div>
-              <div className="self-center text-center">
-                Please fill academic involvement forms to get marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed:{' '}
-                  <span>
-                    {progress
-                      ? `${progress['Academic Involvement'].toFixed(2)}%`
-                      : '0.00%'}
-                  </span>
-                </div>
-              </div>
-              <Link
-                href={getAILink()}
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Student Development
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">0</div>
-              <div className="self-center text-center">
-                Please fill student development forms to get marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed: <span>0%</span>
-                </div>
-              </div>
-              <Link
-                href=""
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Administrative Bucket
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">0</div>
-              <div className="self-center text-center">
-                Please fill administrative bucket forms to get marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed: <span>0%</span>
-                </div>
-              </div>
-              <Link
-                href=""
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Research Bucket
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">0</div>
-              <div className="self-center text-center">
-                Please fill research bucket forms to get marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed: <span>0%</span>
-                </div>
-              </div>
-              <Link
-                href="/academic-involvement"
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Consultancy and Corporate Training
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">0</div>
-              <div className="self-center text-center">
-                Please fill consultancy and corporate training forms to get
-                marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed: <span>0%</span>
-                </div>
-              </div>
-              <Link
-                href="/academic-involvement"
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
-            <div className=" grid h-max w-full grid-cols-5 gap-4 rounded-md border border-gray-200 px-6 py-4">
-              <div className="row-span-2 self-center text-center">
-                Product Dev. Bucket
-              </div>
-              <div className="text-center">Max marks</div>
-              <div className="text-center">Minimum marks required</div>
-              <div className="text-center">Marks obtained</div>
-              <div className="text-center">Remarks</div>
-              <div className="self-center text-center">2000</div>
-              <div className="self-center text-center">1200</div>
-              <div className="self-center text-center">0</div>
-              <div className="self-center text-center">
-                Please fill product dev. bucket forms to get marks.
-              </div>
-              <div className="col-span-5 mx-auto">
-                <div>
-                  Completed: <span>0%</span>
-                </div>
-              </div>
-              <Link
-                href="/academic-involvement"
-                className="col-span-5 mx-auto w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white"
-              >
-                Fill this category
-              </Link>
-            </div>
+        <div className="flex w-full justify-center">
+          <div className="mx-auto my-4 w-full max-w-7xl px-2 sm:px-6 lg:px-8">
+            {data.length > 0 ? (
+              <HorizontalBarChart labels={labels} data={data} />
+            ) : (
+              <Loader />
+            )}
           </div>
         </div>
       </main>

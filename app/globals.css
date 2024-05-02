@@ -21,12 +21,32 @@
   .title {
     @apply mb-2 text-center text-2xl font-bold text-gray-900;
   }
-  .button {
-    @apply h-10 w-max rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white;
+  .AIbutton {
+    @apply h-10 w-max rounded-md bg-[#ff6384] px-4 py-2 font-semibold text-white;
   }
 
-  .input-button {
-    @apply col-span-5 flex h-10 w-32 items-center justify-center gap-2 rounded-md bg-fuchsia-600 px-4 py-2 font-semibold text-white;
+  .SDbutton {
+    @apply h-10 w-max rounded-md bg-[#ff9f40] px-4 py-2 font-semibold text-white;
+  }
+
+  .ABbutton {
+    @apply h-10 w-max rounded-md bg-[#ffcd56] px-4 py-2 font-semibold text-white;
+  }
+
+  .RBbutton {
+    @apply h-10 w-max rounded-md bg-[#4bc0c0] px-4 py-2 font-semibold text-white;
+  }
+
+  .CCbutton {
+    @apply h-10 w-max rounded-md bg-[#36a2eb] px-4 py-2 font-semibold text-white;
+  }
+
+  .PDbutton {
+    @apply h-10 w-max rounded-md bg-[#9966ff] px-4 py-2 font-semibold text-white;
+  }
+
+  .AIinput-button {
+    @apply col-span-5 flex h-10 w-32 items-center justify-center gap-2 rounded-md bg-[#ff6384] px-4 py-2 font-semibold text-white;
   }
   .main {
     @apply flex flex-col items-center;
