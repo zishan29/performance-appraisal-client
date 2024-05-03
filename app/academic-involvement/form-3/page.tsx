@@ -62,6 +62,10 @@ export default function Page() {
     messageApi.info('Dead end!');
   };
 
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+  };
+
   async function checkSubmission() {
     setLoading(true);
     const token = localStorage.getItem('token');
@@ -384,7 +388,14 @@ export default function Page() {
                   )}
                 </button>
                 {contextHolder}
-                <Link href="" className="AIinput-button" onClick={info}>
+                <Link
+                  href=""
+                  className="AIinput-button"
+                  onClick={(e) => {
+                    info();
+                    handleClick(e);
+                  }}
+                >
                   Next
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

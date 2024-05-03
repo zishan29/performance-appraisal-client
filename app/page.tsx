@@ -8,6 +8,7 @@ import userServices from './services/user';
 import Loader from './components/Loader';
 import { Progress } from 'antd';
 import { Button, message } from 'antd';
+import { MouseEvent } from 'react';
 
 interface Category {
   completedForms: number;
@@ -128,6 +129,10 @@ export default function Home() {
     return `/academic-involvement/form-${nextFormNumber}`;
   };
 
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-light-gray">
       <Nav />
@@ -162,7 +167,10 @@ export default function Home() {
                     <Link
                       className={`${category.button}`}
                       href=""
-                      onClick={info}
+                      onClick={(e) => {
+                        info();
+                        handleClick(e);
+                      }}
                     >
                       Submit
                     </Link>

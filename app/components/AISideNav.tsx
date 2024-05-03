@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Button, message } from 'antd';
+import { MouseEvent } from 'react';
 
 const categories = [
   {
@@ -26,6 +27,10 @@ export default function TopNav({ categoryName }: { categoryName: String }) {
   const info = () => {
     messageApi.info('Coming soon!');
   };
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+  };
   return (
     <>
       <nav className="sticky top-10 mt-10 flex h-max w-4/12 flex-col gap-3 overflow-y-auto px-3">
@@ -34,8 +39,11 @@ export default function TopNav({ categoryName }: { categoryName: String }) {
         {categories[0].AI.map((category, index) => (
           <Link
             key={category}
-            onClick={info}
-            href=""
+            onClick={(e) => {
+              info();
+              handleClick(e);
+            }}
+            href="#"
             className="w-full px-2 py-1 hover:bg-dark-brown hover:text-white"
           >
             -{category}
