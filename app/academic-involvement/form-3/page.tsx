@@ -384,7 +384,7 @@ export default function Page() {
                   )}
                 </button>
                 {contextHolder}
-                <Link href="#" className="AIinput-button" onClick={info}>
+                <Link href="" className="AIinput-button" onClick={info}>
                   Next
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

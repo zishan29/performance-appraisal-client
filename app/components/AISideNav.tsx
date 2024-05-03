@@ -35,7 +35,7 @@ export default function TopNav({ categoryName }: { categoryName: String }) {
           <Link
             key={category}
             onClick={info}
-            href={`#`}
+            href=""
             className="w-full px-2 py-1 hover:bg-dark-brown hover:text-white"
           >
             -{category}

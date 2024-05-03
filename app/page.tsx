@@ -161,7 +161,7 @@ export default function Home() {
                     </Link>
                     <Link
                       className={`${category.button}`}
-                      href="#"
+                      href=""
                       onClick={info}
                     >
                       Submit
