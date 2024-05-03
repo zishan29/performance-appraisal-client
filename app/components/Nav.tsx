@@ -6,7 +6,6 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import vitLogo from '@/public/logo_vit.png';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Moon, Sun } from 'lucide-react';
 
 const navigation = [
@@ -73,9 +72,7 @@ export default function Nav() {
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
-                  <Image
-                    width={200}
-                    height={200}
+                  <img
                     className="h-12 w-auto rounded-md bg-light-brown p-2"
                     src={`${vitLogo.src}`}
                     alt="Your Company"
