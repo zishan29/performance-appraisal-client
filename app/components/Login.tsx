@@ -20,9 +20,7 @@ export default function Login() {
             router.push('/');
           })
           .catch((err) => {
-            if (err.response.status === 401) {
-              router.push('/login');
-            }
+            console.log(err);
           });
       }
     }
