@@ -52,6 +52,16 @@ const getUserDetails = () => {
   return request.then((response) => response.data);
 };
 
+const updateUserDetails = (updatedData) => {
+  const token = localStorage.getItem('token');
+  const request = axios.post(`${baseurl}/updateUserDetails`, updatedData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return request.then((response) => response.data);
+};
+
 export default {
   signup,
   login,
@@ -60,4 +70,5 @@ export default {
   getCategories,
   getUserScores,
   getUserDetails,
+  updateUserDetails,
 };

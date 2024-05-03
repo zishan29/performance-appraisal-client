@@ -232,7 +232,7 @@ export default function Page() {
     <>
       <main className="main">
         <Nav />
-        <div className="container">
+        <div className="container mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
           <SideNav categoryName={'Academic Involvement'} />
           <div className="form-container border border-gray-200">
             <div className="title flex items-center justify-center gap-2">

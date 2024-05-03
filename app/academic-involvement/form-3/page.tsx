@@ -5,6 +5,7 @@ import Nav from '@/app/components/Nav';
 import SideNav from '@/app/components/AISideNav';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { Button, message } from 'antd';
 
 interface InputData {
   state: string;
@@ -55,6 +56,11 @@ export default function Page() {
       mapping: '1.5',
     },
   ]);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const info = () => {
+    messageApi.info('Dead end!');
+  };
 
   async function checkSubmission() {
     setLoading(true);
@@ -331,7 +337,7 @@ export default function Page() {
               <div className="flex justify-between">
                 <Link
                   href="/academic-involvement/form-2"
-                  className="input-button"
+                  className="AIinput-button"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -351,7 +357,7 @@ export default function Page() {
                   Previous
                 </Link>
                 <button
-                  className={clsx('input-button', {
+                  className={clsx('AIinput-button', {
                     'bg-gray-400': submission.length > 0,
                     'cursor-not-allowed': submission.length > 0,
                   })}
@@ -377,10 +383,8 @@ export default function Page() {
                     'submit'
                   )}
                 </button>
-                <Link
-                  href="/academic-involvement/form-4"
-                  className="input-button"
-                >
+                {contextHolder}
+                <Link href="#" className="AIinput-button" onClick={info}>
                   Next
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

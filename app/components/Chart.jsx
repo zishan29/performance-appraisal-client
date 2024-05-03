@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 
 const HorizontalBarChart = ({ labels, data }) => {
   const chartRef = useRef(null);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem('theme') === 'dark',
+  );
 
   useEffect(() => {
     let chartInstance = null;
@@ -42,9 +45,36 @@ const HorizontalBarChart = ({ labels, data }) => {
         },
         options: {
           indexAxis: 'y',
+          plugins: {
+            legend: {
+              labels: {
+                color: darkMode ? 'white' : 'black',
+              },
+            },
+          },
           scales: {
             x: {
               beginAtZero: true,
+              ticks: {
+                color: darkMode ? 'white' : 'black',
+                font: darkMode ? 'white' : 'black',
+              },
+              grid: {
+                color: darkMode
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : 'rgba(0, 0, 0, 0.1)',
+              },
+            },
+            y: {
+              ticks: {
+                color: darkMode ? 'white' : 'black',
+                font: darkMode ? 'white' : 'black',
+              },
+              grid: {
+                color: darkMode
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : 'rgba(0, 0, 0, 0.1)',
+              },
             },
           },
         },
@@ -55,7 +85,7 @@ const HorizontalBarChart = ({ labels, data }) => {
         chartInstance.destroy();
       }
     };
-  }, [chartRef, labels, data]);
+  }, [chartRef, labels, data, darkMode]);
 
   return <canvas ref={chartRef} />;
 };

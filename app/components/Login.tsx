@@ -93,14 +93,14 @@ export default function Login() {
           </div>
           <button
             onClick={loginUser}
-            className="m-auto w-max rounded bg-fuchsia-600 px-6 py-2 text-sm font-normal text-white hover:bg-fuchsia-500 active:bg-fuchsia-700"
+            className="m-auto w-max rounded bg-stone-900 px-6 py-2 text-sm font-normal text-white hover:bg-stone-700 active:bg-stone-800"
           >
             Submit
           </button>
         </form>
         <div className="mt-[1.6rem] text-center text-sm">
           Don’t have an account yet?{' '}
-          <a className="text-sm text-fuchsia-600" href="/signup">
+          <a className="text-sm text-stone-900 underline" href="/signup">
             Sign up
           </a>
         </div>

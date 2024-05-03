@@ -185,7 +185,10 @@ export default function Page() {
                       Course/Lab {index + 1}
                     </div>
                     <div className="form-group">
-                      <label htmlFor={`courseName${index}`} className="label">
+                      <label
+                        htmlFor={`courseName${index}`}
+                        className="label mt-3"
+                      >
                         Course/Lab name
                       </label>
                       <input
@@ -201,7 +204,7 @@ export default function Page() {
                     <div className="form-group">
                       <label
                         htmlFor={`lecturesEngaged${index}`}
-                        className="label"
+                        className="label mt-3"
                       >
                         No. of lectures engaged (including extra)
                       </label>
@@ -218,7 +221,7 @@ export default function Page() {
                     <div className="form-group">
                       <label
                         htmlFor={`lecturesAsPerSyllabus${index}`}
-                        className="label"
+                        className="label mt-3"
                       >
                         No. of lectures as per syllabus
                       </label>
@@ -239,7 +242,7 @@ export default function Page() {
                     <div className="form-group">
                       <label
                         htmlFor={`completionOfSyllabus${index}`}
-                        className="label"
+                        className="label mt-3"
                       >
                         Completion of syllabus in %
                       </label>
@@ -258,7 +261,7 @@ export default function Page() {
                       />
                     </div>
                     <button
-                      className={clsx('input-button mt-3 w-max', {
+                      className={clsx('AIinput-button mt-3 w-max', {
                         hidden: forms.length < 2,
                         'bg-gray-400': submission.length > 0,
                         'cursor-not-allowed': submission.length > 0,
@@ -288,10 +291,13 @@ export default function Page() {
                 ))}
               </div>
               <button
-                className={clsx('input-button flex w-max items-center gap-1', {
-                  'bg-gray-400': submission.length > 0,
-                  'cursor-not-allowed': submission.length > 0,
-                })}
+                className={clsx(
+                  'AIinput-button flex w-max items-center gap-1',
+                  {
+                    'bg-gray-400': submission.length > 0,
+                    'cursor-not-allowed': submission.length > 0,
+                  },
+                )}
                 type="button"
                 onClick={addForm}
                 disabled={submission.length > 0}
@@ -316,7 +322,7 @@ export default function Page() {
               <div className="flex justify-between">
                 <Link
                   href="/academic-involvement/form-1"
-                  className="input-button"
+                  className="AIinput-button"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -336,7 +342,7 @@ export default function Page() {
                   Previous
                 </Link>
                 <button
-                  className={clsx('input-button', {
+                  className={clsx('AIinput-button', {
                     'bg-gray-400': submission.length > 0,
                     'cursor-not-allowed': submission.length > 0,
                   })}
@@ -364,7 +370,7 @@ export default function Page() {
                 </button>
                 <Link
                   href="/academic-involvement/form-3"
-                  className="input-button"
+                  className="AIinput-button"
                 >
                   Next
                   <svg

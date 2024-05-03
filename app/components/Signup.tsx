@@ -40,11 +40,6 @@ export default function Signup() {
                 body: JSON.stringify({ token: localStorage.getItem('token') }),
               },
             );
-            if (res.status === 401) {
-              let resData = await res.json();
-              console.log(resData.error);
-              router.push('/login');
-            }
             if (res.status === 200) {
               router.push('/');
             }
@@ -244,14 +239,14 @@ export default function Signup() {
           </div>
           <button
             onClick={signupUser}
-            className="m-auto w-max rounded bg-fuchsia-600 px-6 py-2 text-sm font-normal text-white hover:bg-fuchsia-500 active:bg-fuchsia-700"
+            className="m-auto w-max rounded bg-stone-900 px-6 py-2 text-sm font-normal text-white hover:bg-stone-700 active:bg-stone-800"
           >
             Submit
           </button>
         </form>
         <div className="mt-[1.6rem] text-center text-sm">
           Already have an account?{' '}
-          <a className="text-sm text-fuchsia-600" href="/login">
+          <a className="text-sm text-stone-900 underline" href="/login">
             Login
           </a>
         </div>

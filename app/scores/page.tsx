@@ -40,7 +40,7 @@ export default function Page() {
           'Academic Involvement': Number(
             responseData.scores['Academic Involvement'],
           ),
-          'Student Development': 1600,
+          'Student Development': 1400,
           'Administrative Bucket': 500,
           'Research Bucket': 416,
           'Consultancy and Corporate': 600,
@@ -56,14 +56,14 @@ export default function Page() {
         console.log(err);
       });
 
-    userServices
-      .getUserProgress()
-      .then((responseData) => {
-        // console.log(responseData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    // userServices
+    //   .getUserProgress()
+    //   .then((responseData) => {
+    //     // console.log(responseData);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
   }, []);
 
   const getAILink = () => {
@@ -76,10 +76,10 @@ export default function Page() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center">
+      <main className="flex min-h-screen flex-col items-center bg-white">
         <Nav />
         <div className="flex w-full justify-center">
-          <div className="mx-auto my-4 w-full max-w-7xl px-2 sm:px-6 lg:px-8">
+          <div className="mx-auto my-4 w-full max-w-7xl px-2 text-gray-900 sm:px-6 lg:px-8">
             {data.length > 0 ? (
               <HorizontalBarChart labels={labels} data={data} />
             ) : (

@@ -6,11 +6,8 @@ import { useEffect, useState } from 'react';
 import Nav from './components/Nav';
 import userServices from './services/user';
 import Loader from './components/Loader';
-
-interface Progress {
-  'Student Development': number;
-  'Academic Involvement': number;
-}
+import { Progress } from 'antd';
+import { Button, message } from 'antd';
 
 interface Category {
   completedForms: number;
@@ -21,10 +18,31 @@ interface Category {
   totalForms: number;
 }
 
+interface Progress {
+  name: string;
+  percentage: number;
+  button: string;
+  color: string;
+}
+
+interface Response {
+  'Academic Involvement': number;
+  'Student Development': number;
+  'Administrative Bucket': number;
+  'Research Bucket': number;
+  'Consultancy and Corporate': number;
+  'Product Dev. Bucket': number;
+}
+
 export default function Home() {
-  const [progress, setProgress] = useState<Progress | null>(null);
+  const [progress, setProgress] = useState<Progress[] | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const info = () => {
+    messageApi.info('Coming soon!');
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -32,7 +50,46 @@ export default function Home() {
       .verifyToken({ token: localStorage.getItem('token') })
       .then(() => {
         userServices.getUserProgress().then((responseData) => {
-          setProgress(responseData.progress);
+          const copy: Progress[] = [
+            {
+              name: 'Academic Involvement',
+              percentage: Number(responseData.progress['Academic Involvement']),
+              color: '#ff6384',
+              button: 'AIbutton',
+            },
+            {
+              name: 'Student Development',
+              percentage: 80.82,
+              color: '#ff9f40',
+              button: 'SDbutton',
+            },
+            {
+              name: 'Administrative Bucket',
+              percentage: 50.22,
+              color: '#ffcd56',
+              button: 'ABbutton',
+            },
+            {
+              name: 'Research Bucket',
+              percentage: 46.32,
+              color: '#4bc0c0',
+              button: 'RBbutton',
+            },
+            {
+              name: 'Consultancy and Corporate',
+              percentage: 60,
+              color: '#36a2eb',
+              button: 'CCbutton',
+            },
+            {
+              name: 'Product Dev. Bucket',
+              percentage: 30.33,
+              color: '#9966ff',
+              button: 'PDbutton',
+            },
+          ];
+          console.log(copy);
+          setProgress(copy);
         });
       })
       .catch((err) => {
@@ -61,14 +118,18 @@ export default function Home() {
 
   const getAILink = () => {
     if (!progress) return '#';
-    const percentage = progress['Academic Involvement'];
-    const formsCompleted = Math.floor((percentage / 100) * 7);
+    const AIprogress = progress.find(
+      (category) => category.name === 'Academic Involvement',
+    );
+    const formsCompleted = Math.floor(
+      (Number(AIprogress!.percentage) / 100) * 7,
+    );
     const nextFormNumber = formsCompleted + 1;
     return `/academic-involvement/form-${nextFormNumber}`;
   };
 
   return (
-    <main className="flex flex-col items-center">
+    <main className="flex min-h-screen flex-col items-center bg-light-gray">
       <Nav />
       {loading ? (
         <>
@@ -77,139 +138,36 @@ export default function Home() {
       ) : (
         <>
           <div className="flex w-full max-w-5xl flex-col px-2 sm:px-6 md:w-3/4 lg:px-8">
+            {contextHolder}
             <div className="my-4 flex flex-col gap-4">
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Academic Involvement
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
+              {progress &&
+                progress.map((category) => (
                   <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#ff6384]"
-                    style={{
-                      width: `${progress?.['Academic Involvement']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress['Academic Involvement'].toFixed(2)}%`
-                      : '0%'}
+                    key={category.name}
+                    className="bucket-container flex items-center gap-6 rounded-md p-4"
+                  >
+                    <span className="grow font-semibold">{category.name}</span>
+                    <div className="w-32">
+                      <Progress
+                        percent={Number(category.percentage.toFixed(2))}
+                        strokeColor={{ from: category.color, to: '#87d068' }}
+                      />
+                    </div>
+                    <Link
+                      className={`${category.button} ml-6`}
+                      href={getAILink()}
+                    >
+                      Fill
+                    </Link>
+                    <Link
+                      className={`${category.button}`}
+                      href="#"
+                      onClick={info}
+                    >
+                      Submit
+                    </Link>
                   </div>
-                </div>
-                <Link className="AIbutton" href={getAILink()}>
-                  Fill
-                </Link>
-                <Link className="AIbutton" href="#">
-                  Submit
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Student Development
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
-                  <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#ff9f40]"
-                    style={{
-                      width: `${progress?.['Student Development']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress?.['Student Development'].toFixed(2)}%`
-                      : '0%'}
-                  </div>
-                </div>
-                <Link className="SDbutton" href="#">
-                  Fill
-                </Link>
-                <Link className="SDbutton" href="#">
-                  Submit
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Administrative Bucket
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
-                  <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#ffcd56]"
-                    style={{
-                      width: `${progress?.['Student Development']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress?.['Student Development'].toFixed(2)}%`
-                      : '0%'}
-                  </div>
-                </div>
-                <Link className="ABbutton" href="#">
-                  Fill
-                </Link>
-                <Link className="ABbutton" href="#">
-                  Submit
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Research Bucket
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
-                  <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#4bc0c0]"
-                    style={{
-                      width: `${progress?.['Student Development']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress?.['Student Development'].toFixed(2)}%`
-                      : '0%'}
-                  </div>
-                </div>
-                <Link className="RBbutton" href="#">
-                  Fill
-                </Link>
-                <Link className="RBbutton" href="#">
-                  Submit
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Consultancy and Corporate Training Bucket
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
-                  <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#36a2eb]"
-                    style={{
-                      width: `${progress?.['Student Development']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress?.['Student Development'].toFixed(2)}%`
-                      : '0%'}
-                  </div>
-                </div>
-                <Link className="CCbutton" href="#">
-                  Fill
-                </Link>
-                <Link className="CCbutton" href="#">
-                  Submit
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 rounded-md bg-gray-100 p-4">
-                Product Dev. Bucket
-                <div className="relative ml-auto h-5 w-32 rounded-full bg-gray-200">
-                  <div
-                    className="absolute bottom-0 left-0 top-0 rounded-full bg-[#9966ff]"
-                    style={{
-                      width: `${progress?.['Student Development']}%`,
-                    }}
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-black">
-                    {progress
-                      ? `${progress?.['Student Development'].toFixed(2)}%`
-                      : '0%'}
-                  </div>
-                </div>
-                <Link className="PDbutton" href="#">
-                  Fill
-                </Link>
-                <Link className="PDbutton" href="#">
-                  Submit
-                </Link>
-              </div>
+                ))}
             </div>
           </div>
         </>
